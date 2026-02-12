@@ -337,4 +337,27 @@ bot.on("text", (ctx) => {
   }
 });
 
+// Required dependencies (add to package.json if missing)
+const express = require("express");
+const app = express();
+
+// Parse JSON bodies from Telegram
+app.use(express.json());
+
+// This line is CRITICAL — tells Telegraf to handle POSTs at /webhook
+app.use(bot.webhookCallback("/webhook"));
+
+// Railway provides PORT env var automatically
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Bot server listening on port ${PORT}`);
+  console.log(`Webhook path: /webhook`);
+});
+
+// Optional: simple health check route (helps debug)
+app.get("/", (req, res) => {
+  res.send("Bot is alive");
+});
+
 module.exports = bot;
