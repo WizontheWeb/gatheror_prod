@@ -48,19 +48,43 @@ const webhookOptions = {
 // Launch
 logger.info(`Starting bot in webhook mode`);
 logger.info(`Webhook URL: ${publicUrl}${secretPath}`);
+// ... your existing bot setup ...
 
-bot
-  .launch({
-    webhook: webhookOptions,
-  })
-  .then(() => {
-    logger.info("Webhook successfully set and bot is running!");
-  })
-  .catch((err) => {
-    logger.error("Failed to launch webhook:", err);
-    process.exit(1);
-  });
+// === Webhook setup for Railway / production ===
+// Only run this in production (not locally)
+if (process.env.NODE_ENV === "production") {
+  const webhookPath = "/webhook"; // Change if you want a different path
+  const webhookUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}${webhookPath}`;
 
+  // Set the webhook with Telegram
+  bot.telegram
+    .setWebhook(webhookUrl)
+    .then(() => {
+      console.log(`Webhook set successfully: ${webhookUrl}`);
+    })
+    .catch((err) => {
+      console.error("Failed to set webhook:", err);
+    });
+
+  // Tell Telegraf to listen for updates at this path
+  // (Railway auto-handles the server, so we just need to tell Telegraf)
+  bot.webhookCallback(webhookPath);
+}
+
+// For local development, keep polling (optional)
+else {
+  bot
+    .launch({
+      webhook: webhookOptions,
+    })
+    .then(() => {
+      logger.info("Webhook successfully set and bot is running!");
+    })
+    .catch((err) => {
+      logger.error("Failed to launch webhook:", err);
+      process.exit(1);
+    });
+}
 // Graceful shutdown
 process.once("SIGINT", () => {
   bot.stop("SIGINT");
