@@ -97,7 +97,7 @@ const newPostWizard = new WizardScene(
     // Fetch categories
     let categories = [];
     try {
-      categories = await getCachedCategories();
+      categories = await require("../lib/categoryCache").getCategories();
     } catch (err) {
       logger.error("Failed to load categories:", err);
       ctx.wizard.state.categoryId = 1;
@@ -182,7 +182,9 @@ const newPostWizard = new WizardScene(
     if (ctx.message?.text === "/skip") {
       ctx.wizard.state.photoFileId = null;
       ctx.wizard.state.caption = "";
-      ctx.wizard.cursor += 1;
+      const previewMsg = await generatePreviewMessage(ctx);
+      await ctx.replyWithMarkdown(previewMsg);
+      ctx.wizard.cursor += 2;
       return ctx.wizard.next();
     }
 

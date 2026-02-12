@@ -21,6 +21,20 @@ const { uploadMedia, createPost, getRecentPosts, getPostById, updatePost, getCac
 // Simple in-memory rate limiter (per user, per command)
 const rateLimits = new Map(); // key: userId_command, value: { count, resetTime }
 
+const { getCategories } = require("./lib/categoryCache");
+
+// Fetch categories when bot starts (fire and forget)
+getCategories()
+  .then(() => console.log("Initial category cache loaded"))
+  .catch((err) => console.error("Initial category cache failed:", err));
+
+// Optional: auto-refresh every 30 minutes in background
+setInterval(() => {
+  getCategories()
+    .then(() => console.log("Categories refreshed in background"))
+    .catch((err) => console.error("Background category refresh failed:", err));
+}, 30 * 60 * 1000);
+
 function checkRateLimit(ctx, command, maxAttempts = 5, windowSeconds = 60) {
   const userId = ctx.from?.id;
   if (!userId) return false;
