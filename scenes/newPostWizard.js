@@ -5,32 +5,39 @@ const { downloadAndCompress } = require("../lib/image");
 const { uploadMedia, createPost, getCachedCategories } = require("../lib/wp");
 const marked = require("marked");
 const sanitizeHtml = require("sanitize-html");
+const messages = require("../lib/messages");
+const Mustache = require("mustache");
 
 // Helper function for preview message
 async function generatePreviewMessage(ctx) {
   const state = ctx.wizard.state;
-  let msg = `Ready to post?\n\n**Title:** ${state.title}\n\n**Content preview:**\n${state.content.substring(0, 200) || "(empty)"}...\n\n`;
 
-  let categoryName = "Uncategorized";
+  // Prepare data for Mustache
+  const previewData = {
+    title: state.title || "(no title)",
+    contentPreview: (state.content || "").substring(0, 200) || "(empty)",
+    categoryName: "Uncategorized",
+
+    hasPhoto: state.photoFileId ? "Yes" : "No",
+    photoCaption: state.caption || "none",
+
+    hasVideo: state.videoUrl ? `Yes (${state.videoUrl})` : "No",
+  };
+
+  // Fetch category name if needed
   if (state.categoryId && state.categoryId !== 1) {
     try {
       const categories = await getCachedCategories();
       const selected = categories.find((c) => c.id === state.categoryId);
-      categoryName = selected ? selected.name : `ID ${state.categoryId}`;
+      previewData.categoryName = selected ? selected.name : `ID ${state.categoryId}`;
     } catch (err) {
       logger.error("Failed to fetch category name for preview:", err);
-      categoryName = `ID ${state.categoryId}`;
+      previewData.categoryName = `ID ${state.categoryId}`;
     }
   }
-  msg += `**Category:** ${categoryName}\n\n`;
 
-  if (state.photoFileId) {
-    msg += `**Featured image:** Yes (caption: ${state.caption || "none"})\n\n`;
-  } else {
-    msg += "**Featured image:** No\n\n";
-  }
-
-  msg += "/confirm   /cancel";
+  // Render with Mustache
+  const msg = Mustache.render(messages.CONFIRMATION_TEMPLATE, previewData);
 
   return msg;
 }

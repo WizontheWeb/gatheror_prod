@@ -8,7 +8,8 @@ const newPostWizard = require("./scenes/newPostWizard");
 const editPostWizard = require("./scenes/editPostWizard");
 const handleUserManagement = require("./lib/userManagement");
 const callbackHandlers = require("./lib/callbackHandlers");
-
+const messages = require("../lib/messages");
+const Mustache = require("mustache");
 const bot = new Telegraf(config.TOKEN);
 
 // Import user management
@@ -182,13 +183,7 @@ bot.command("config", async (ctx) => {
 });
 
 bot.command("start", async (ctx) => {
-  ctx.reply(
-    "👋 Welcome!\n\n" +
-      "This is your private bot for posting to the website.\n" +
-      "Use /newpost to create a post, /viewposts to see recent ones.\n" +
-      "Type /cancel anytime to stop.\n\n" +
-      "Your menu shows available commands based on your role."
-  );
+  ctx.reply(messages.WELCOME);
 });
 
 bot.command("cancel", async (ctx) => {
