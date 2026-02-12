@@ -8,7 +8,7 @@ const newPostWizard = require("./scenes/newPostWizard");
 const editPostWizard = require("./scenes/editPostWizard");
 const handleUserManagement = require("./lib/userManagement");
 const callbackHandlers = require("./lib/callbackHandlers");
-const messages = require("../lib/messages");
+const messages = require("./lib/messages");
 const Mustache = require("mustache");
 const bot = new Telegraf(config.TOKEN);
 
